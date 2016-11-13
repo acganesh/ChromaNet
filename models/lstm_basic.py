@@ -3,7 +3,7 @@ import h5py
 import scipy.io
 from keras.models import Sequential
 from keras.layers import Bidirectional, LSTM
-from keras.layers.core import Dropout
+from keras.layers.core import Dropout, Dense
 
 np.random.seed(42)
 
@@ -26,12 +26,12 @@ y_train = np.array(trainmat['traindata']).T
 print 'data np-ified'
 
 model = Sequential()
-model.add(Bidirectional(LSTM(320, return_sequences=True), input_shape=(1000, 4)))
+model.add(Bidirectional(LSTM(320, return_sequences=False), input_shape=(1000, 4)))
 model.add(Dropout(0.5))
 model.add(Dense(output_dim=919, activation='sigmoid'))
 model.compile(optimizer='rmsprop', loss='binary_crossentropy', class_mode='binary')
 
 
-model.fit(X_train, y_train, batch_size=100, nb_epoch=60, shuffle=True, show_accuracy=True, validation_data=(np.transpose(validmat['validxdata'],axes=(0,2,1)), validmat['validdata']), callbacks=[checkpointer,earlystopper])
+model.fit(X_train, y_train, batch_size=100, nb_epoch=60, shuffle=True, show_accuracy=True, validation_data=(np.transpose(validmat['validxdata'],axes=(0,2,1)), validmat['validdata']))
 
 tresults = model.evaluate(np.transpose(testmat['testxdata'],axes=(0,2,1)), testmat['testdata'],show_accuracy=True)
