@@ -11,7 +11,6 @@ class MultitaskSeq2Seq():
     https://github.com/tensorflow/tensorflow/blob/754048a0453a04a761e112ae5d99c149eb9910dd/tensorflow/models/rnn/translate/seq2seq_model.py
     based on Luong et al., ICLR 2016:
     https://arxiv.org/pdf/1511.06114v4.pdf
-    and
     """
 
     def __init__(self,
@@ -61,6 +60,18 @@ class MultitaskSeq2Seq():
         self.global_step = tf.Variable(0, trainable=False)
 
 
+    # In the default implementation, the outputs of the embedding
+    # model will be tensors of shape (batch-size x num_decoder_symbols).
+    # But when num_decoder_symbols is large, it is more practical
+    # to return smaller output tensors, which are later projected
+    # onto a large tensor.  As described in Jean et al. 2014
+    # (https://arxiv.org/pdf/1412.2007.pdf), this allows us
+    # to use sampled softmax loss.
+
+    # However: since we are returning a binary output vector,
+    # this shouldn't be necessary.
+    # TODO: remove output projection / sampled softmax logic.
+
     # If we use sampled softmax, we need an output projection.
     output_projection = None
     softmax_loss_function = None
@@ -86,10 +97,13 @@ class MultitaskSeq2Seq():
     softmax_loss_function = sampled_loss
 
     # Create the internal multi-layer cell for our RNN.
+    # By default, use a GRU cell, but use LSTM if specified.
     single_cell = tf.nn.rnn_cell.GRUCell(size)
     if use_lstm:
       single_cell = tf.nn.rnn_cell.BasicLSTMCell(size)
     cell = single_cell
+
+    # Use a MultiRNNCell if num_layers > 1
     if num_layers > 1:
       cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * num_layers)
 
@@ -102,6 +116,9 @@ class MultitaskSeq2Seq():
           num_encoder_symbols=source_vocab_size,
           num_decoder_symbols=target_vocab_size,
           embedding_size=size,
+          # Commented this out, since the output projection
+          # shouldn't be necessary.  Also, the multitask
+          # function doesn't support this argument.
           #output_projection=output_projection,
           feed_previous=do_decode,
           dtype=dtype)
