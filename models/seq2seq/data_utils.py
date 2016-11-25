@@ -8,6 +8,7 @@ np.random.seed(42)
 DATA_PATH = '/home/data/deepsea_train'
 print 'Loading data'
 
+
 def load(data_path = DATA_PATH):
     trainmat = h5py.File('%s/train.mat' % DATA_PATH)
     validmat = scipy.io.loadmat('%s/valid.mat' % DATA_PATH)
@@ -26,3 +27,7 @@ def load(data_path = DATA_PATH):
     print 'Data converted to NumPy arrays'
 
     return X_train, y_train
+
+def bucket(X_train, y_train, buckets):
+    """Need to fill this in"""
+    pass
