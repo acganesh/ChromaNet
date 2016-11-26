@@ -28,7 +28,7 @@ def load(data_path = DATA_PATH):
     return X_train, y_train
 
 
-def down_sample_data(trainmat, validmat, testmat, train_factor, valid_factor, test_factor):
+def down_sample_data(trainmat, validmat, testmat, new_train_size, new_valid_size, new_test_size):
     X_train_full=np.transpose(np.array(trainmat['trainxdata']),axes=(2,0,1))
     y_train_full=np.array(trainmat['traindata']).T
     X_valid_full=np.transpose(np.array(validmat['validxdata']),axes=(2,0,1))
@@ -36,9 +36,10 @@ def down_sample_data(trainmat, validmat, testmat, train_factor, valid_factor, te
     X_test_full=np.transpose(np.array(testmat['testxdata']),axes=(2,0,1))
     y_test_full=np.array(testmat['testdata']).T
 
-    new_train_size=(X_train_full.shape[0])*train_factor
-    new_valid_size=(X_valid_full.shape[0])*valid_factor
-    new_test_size=(X_test_full.shape[0])*test_factor
+    # Downsampling factor
+    #new_train_size=(X_train_full.shape[0])*train_factor
+    #new_valid_size=(X_valid_full.shape[0])*valid_factor
+    #new_test_size=(X_test_full.shape[0])*test_factor
 
     X_train_new=np.zeros((new_train_size,1000,4))
     y_train_new=np.zeros((new_train_size,919))
