@@ -27,7 +27,7 @@ def down_sample_data(trainmat, validmat, testmat,train_factor, valid_factor, tes
     X_valid_new=np.zeros((new_valid_size,1000,4))
     y_valid_new=np.zeros((new_valid_size,919))
     X_test_new=np.zeros((new_test_size,1000,4))
-    y_test_new=np.zeros((new_valid_size,919))
+    y_test_new=np.zeros((new_test_size,919))
 
 
     train_indices=random.sample(xrange(X_train_full.shape[0]),new_train_size)
