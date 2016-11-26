@@ -28,7 +28,7 @@ def load(data_path = DATA_PATH):
     return X_train, y_train
 
 
-def down_sample_data(trainmat, validmat, testmat,train_factor, valid_factor, test_factor):
+def down_sample_data(trainmat, validmat, testmat, train_factor, valid_factor, test_factor):
     X_train_full=np.transpose(np.array(trainmat['trainxdata']),axes=(2,0,1))
     y_train_full=np.array(trainmat['traindata']).T
     X_valid_full=np.transpose(np.array(validmat['validxdata']),axes=(2,0,1))
