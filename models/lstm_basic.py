@@ -5,9 +5,13 @@ from keras.models import Sequential
 from keras.layers import Bidirectional, LSTM
 from keras.layers.core import Dropout, Dense
 
+import tensorflow
+from tensorflow.python.ops import control_flow_ops 
+tensorflow.python.control_flow_ops = control_flow_ops
 np.random.seed(42)
 
-DATA_PATH = '/home/data/deepsea_train'
+DATA_PATH = '/home/adithya/Stanford/cs273b/273b-project/data/deepsea_train'
+
 print 'loading data'
 trainmat = h5py.File('%s/train.mat' % DATA_PATH)
 validmat = scipy.io.loadmat('%s/valid.mat' % DATA_PATH)
