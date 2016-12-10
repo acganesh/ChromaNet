@@ -4,9 +4,6 @@ import scipy.io
 import random
 import socket
 
-# For reproducibility
-np.random.seed(42)
-
 def get_data_path():
     hostname = socket.gethostname()
     # Add entries to this dictionary as more machines are used 
@@ -134,6 +131,8 @@ def load_hdf5(name):
     return data
 
 def rnd_subsample(trainmat, validmat, testmat, new_train_size, new_valid_size, new_test_size):
+    np.random.seed(42)
+
     X_train_full=np.transpose(np.array(trainmat['trainxdata']),axes=(2,0,1))
     y_train_full=np.array(trainmat['traindata']).T
     X_valid_full=np.transpose(np.array(validmat['validxdata']),axes=(0,2,1))
