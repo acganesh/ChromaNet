@@ -1,17 +1,17 @@
 import numpy as np
+import sys
 import h5py
 import scipy.io
 np.random.seed(111) # for reproducibility                                             
 
 from keras import backend as K 
 from keras.preprocessing import sequence
-from keras.optimizers import RMSprop, Nadam
+from keras.optimizers import RMSprop, Nadam, SGD
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
 from keras.regularizers import l2, activity_l1
 from keras.constraints import maxnorm
-from keras.layers.recurrent import LSTM, GRU
 from keras.callbacks import Callback,LambdaCallback, ModelCheckpoint, EarlyStopping, RemoteMonitor
 import tensorflow as tf
 from keras.metrics import binary_accuracy, fbeta_score, binary_crossentropy
@@ -20,6 +20,7 @@ import random
 import theano
 import theano.tensor as T
 from sklearn.metrics import average_precision_score, roc_auc_score
+from scipy.stats import hmean
 _FLOATX = 'float32'
 _EPSILON = 10e-8
 
@@ -42,32 +43,46 @@ X_train = np.array(trainmat['trainxdata'])
 y_train = np.array(trainmat['traindata'])
 y_train = y_train[:, index]       
 
-ones = np.mean(y_train, 0)
-w = np.array([1.0/item for item in ones])
-weights = np.array([w for i in range(batch_sz)]) 
-weights.shape = (batch_sz * sampled, 1)
-#weights.shape = (sampled, 1)
-w_max = np.nanmax(weights[np.isfinite(weights)])
-weights[weights==np.inf] = w_max
+ones = np.mean(y_train,0)
+#ones[ones<.01] = 0.01
+zeros = 1 - ones
+os = np.array([ones for shit in range(batch_sz)])
+zs = np.array([zeros for shit in range(batch_sz)])
 
+os.shape = (batch_sz * sampled,1)
+zs.shape = (batch_sz * sampled,1)
+ones, zeros = os, zs 
+
+#meanOnes = np.mean(y_train, 0)
+#w = np.array([1.0/item for item in meanOnes])
+#meanW = np.mean(w)
+#regularizedW = np.array([np.mean([item, meanW]) for item in w])
+#reg = np.array([np.mean([item, 1]) for item in regularizedW])
+#
+#weights = np.array([reg for i in range(batch_sz)]) 
+#weights.shape = (batch_sz * sampled, 1)
+##weights.shape = (sampled, 1)
+#w_max = np.nanmax(weights[np.isfinite(weights)])
+#weights[weights==np.inf] = w_max
+#
 def NLL_loss(y_true, y_pred):
     y_pred = T.clip(y_pred, _EPSILON, 1.0 - _EPSILON)
     y_t = K.reshape(y_true,(batch_sz * sampled,1))
-    weighted = K.prod(K.concatenate([y_t,weights], axis = 1), axis=1)
+    weighted = K.prod(K.concatenate([y_t,zeros], axis = 1), axis=1)
     y_t = K.reshape(weighted,(batch_sz, sampled))
-    return -(y_t * K.log(y_pred) + (1.0 - y_true) * K.log(1.0 - y_pred))
+    return -(y_t * K.log(y_pred) + (1.0-y_t) * K.log(1.0 - y_pred))
 
 
-lr = 0.001
+lr, decay, p = 0.005, 8e-7, 0.5
 
 filters = [320, 480, 960]
 width = 1000
 convWindows = [8, 8, 8]
 poolWindows = [4,4,4]
-dropouts    = [0.2,0.4,0.5,0.5]
+dropouts    = [0.2,0.2,0.3,0.4]
 num_layers = 3
 
-thef = open('results.txt', 'a')
+thef = open('Behrooz.txt', 'a')
 
 model = Sequential()
 
@@ -97,7 +112,7 @@ model.add(Dropout(dropouts[3]))
 model.add(Dense(sampled, input_dim=925, activation='sigmoid'))
 
 
-model.compile(loss=NLL_loss, optimizer=RMSprop(lr), metrics=[binary_accuracy])
+model.compile(loss=NLL_loss, optimizer=Nadam(lr=lr),  metrics=[binary_accuracy])
 
 class Histories(Callback):
   def __init__(self):
@@ -116,24 +131,24 @@ class Histories(Callback):
     y_true = self.model.validation_data[1]
     y_pred = y_pred[:, np.sum(y_true, axis=0) > 0]
     y_true = y_true[:,np.sum(y_true, axis=0) > 0]
-    self.roc = roc_auc_score(y_true, y_pred)
-    self.roc_auc.append(self.roc)
-    self.pr = average_precision_score(y_true, y_pred)
-    self.pr_auc.append(self.pr)   
-    self.loss.append(NLL_loss(y_pred, y_true)) 
-    self.entropyloss.append(binary_crossentropy(y_true, y_pred))
+   # self.roc = roc_auc_score(y_true, y_pred)
+   # self.roc_auc.append(self.roc)
+   # self.pr = average_precision_score(y_true, y_pred)
+   # self.pr_auc.append(self.pr)   
+   # self.loss.append(NLL_loss(y_pred, y_true)) 
+   # self.entropyloss.append(binary_crossentropy(y_true, y_pred))
     return
 
 h1 = Histories()
 
 
-checkpointer = ModelCheckpoint(filepath="weights/weights.{epoch:02d}-{val_loss:.2f}_"+str(lr)+"_RMSprop.hdf5", verbose=1, save_best_only=False,save_weights_only=False)
-earlystopper = EarlyStopping(monitor='val_loss', patience=4, verbose=1)
+checkpointer = ModelCheckpoint(filepath="weights/weights.{epoch:02d}-{val_loss:.2f}_"+str(lr)+"_NewWeighting_Nadam.hdf5", verbose=1, save_best_only=False,save_weights_only=False)
+earlystopper = EarlyStopping(monitor='val_loss', patience=4, verbose=1, mode='min')
 
 
-history = model.fit(X_train, y_train, batch_size=batch_sz, nb_epoch=10, shuffle=True, verbose = 1, validation_data=(np.transpose(validmat['validxdata'],axes=(0,2,1)), validmat['validdata'][:,index]), callbacks=[checkpointer,earlystopper,h1])
+history = model.fit(X_train, y_train, batch_size=batch_sz, nb_epoch=12, shuffle=True, verbose = 1, validation_data=(np.transpose(validmat['validxdata'],axes=(0,2,1)), validmat['validdata'][:,index]), callbacks=[checkpointer,earlystopper,h1], show_accuracy=True)
 
-print >> thef, lr, 'rmsprop'
+print >> thef, "lr=",lr, decay, p, 'Nadam default'
 print >> thef, history.history['val_loss'], history.history['val_binary_accuracy']
 print >> thef, h1.pr_auc, h1.roc_auc
 
