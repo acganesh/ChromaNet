@@ -5,7 +5,7 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.optimizers import RMSprop
 
 from data_utils import load
-from models import BidirectionalLSTMNet
+from clock_model import BidirectionalClockworkRNN
 
 # Hack to fix Keras incompatibility issue;
 # should change this
@@ -24,7 +24,7 @@ def main():
     X_train, y_train = load('med')
     print 'Data loaded'
 
-    net = BidirectionalLSTMNet()
+    net = BidirectionalClockworkRNN()
     model = net.build_model()
 
     checkpointer = ModelCheckpoint(filepath='./experiments/lstm_test_med.hdf5', verbose=1, save_best_only=True)
