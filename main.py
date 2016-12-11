@@ -27,7 +27,7 @@ def main():
 
     checkpointer = ModelCheckpoint(filepath='./experiments/lstm_test.hdf5', verbose=1, save_best_only=True)
     earlystopper = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
-    model.fit(X_train_tiny, y_train_tiny, batch_size=1, nb_epoch=10, shuffle=True, validation_split=0.2, callbacks=[checkpointer, earlystopper])
+    model.fit(X_train_tiny, y_train_tiny, batch_size=100, class_weight='auto', nb_epoch=10, shuffle=True, validation_split=0.2, callbacks=[checkpointer, earlystopper])
 
 if __name__ == '__main__':
     main()

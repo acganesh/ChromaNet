@@ -8,7 +8,8 @@ def get_data_path():
     hostname = socket.gethostname()
     # Add entries to this dictionary as more machines are used 
     data_paths = {'acganesh-MS-7885': 
-                  '/home/adithya/Stanford/cs273b/273b-project/data/deepsea_train/'}
+                  '/home/adithya/Stanford/cs273b/273b-project/data/deepsea_train/',
+                  'group16': '/home/data/deepsea_train/'}
     return data_paths[hostname]
 
 def load(dataset):
