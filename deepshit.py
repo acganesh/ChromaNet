@@ -35,8 +35,8 @@ batch_sz = 32
 
 print 'loading data'
 #trainmat = h5py.File('../smallData.mat')                                   
-trainmat = scipy.io.loadmat('../midData.m.mat')
-validmat = scipy.io.loadmat('../valid.mat')                            
+trainmat = scipy.io.loadmat('../../midData.m.mat')
+validmat = scipy.io.loadmat('../../valid.mat')                            
 #testmat = scipy.io.loadmat('../test.mat')                              
 
 #X_train = np.transpose(np.array(trainmat['trainxdata']),axes=(2,0,1))                
@@ -167,9 +167,9 @@ earlystopper = EarlyStopping(monitor='val_loss', patience=4, verbose=1, mode='mi
 
 #history = model.fit(X_train, y_train, batch_size=batch_sz, nb_epoch=10, shuffle=True, verbose = 1, validation_data=(np.transpose(validmat['validxdata'],axes=(0,2,1))[:,:,:], validmat['validdata'][:,index]), callbacks=[checkpointer,earlystopper,h1], show_accuracy=True)
 
-print >> thef, "lr=",lr, decay, p, 'Nadam default'
-print >> thef, history.history['val_loss'], history.history['val_binary_accuracy']
-print >> thef, h1.pr_auc, h1.roc_auc
+#print >> thef, "lr=",lr, decay, p, 'Nadam default'
+#print >> thef, history.history['val_loss'], history.history['val_binary_accuracy']
+#print >> thef, h1.pr_auc, h1.roc_auc
 
 
 
@@ -195,7 +195,7 @@ print >> thef, h1.pr_auc, h1.roc_auc
 # implement various metrics here
 from keras import backend as K
 from keras.models import load_model
-from data_utils import load
+from data_utils import load, load_test
 import h5py
 
 from sklearn.metrics import roc_auc_score, average_precision_score
@@ -227,17 +227,41 @@ def NLL_loss(y_true, y_pred):
     return -K.mean(o_weights * K.log(y_pred) + z_weights*K.log(1-y_pred))
 
 def get_metrics(model):
-    X_test, y_test = load('test')
-    y_pred = model.predict_proba(X_test)
+    np.random.seed(42)
+
+    N = 1002 
+    X_test, y_test = load_test()
+    y_test_rnd = y_test[:, index]
+
+    #X_test_rnd = X_test[:, index]
+    #import pdb; pdb.set_trace()
+
+    inds = np.random.choice(y_test_rnd.shape[0], N)
+    print 'data loaded'
+
+    y_pred = model.predict_proba(X_test[inds])
+    print 'predictions done'
 
     # Output predictions to h5 file
     h5f = h5py.File('y_pred.h5', 'w')
     h5f.create_dataset('y_pred', data=y_pred)
     h5f.close()
+    print 'preds saved'
 
-    roc_auc = roc_auc_score(y_test, y_pred)
-    average_precision = average_precision_score(y_test, y_pred)
-
+    roc_aucs = []
+    avg_precs = []
+    for t in xrange(500):
+       if np.sum(y_test_rnd[inds, t]) != 0.0:
+	   roc_auc = roc_auc_score(y_test_rnd[inds, t], y_pred[:, t])
+	   avg_prec = average_precision_score(y_test_rnd[inds, t], y_pred[:, t])
+	   roc_aucs.append(roc_auc)
+	   avg_precs.append(avg_prec)
+       else:
+	   roc_aucs.append(-1)
+	   avg_precs.append(-1)
+	
     import pdb; pdb.set_trace()
+    print 'metrics calculated'
+
 
 get_metrics(model)

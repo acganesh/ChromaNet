@@ -9,8 +9,18 @@ def get_data_path():
     # Add entries to this dictionary as more machines are used 
     data_paths = {'acganesh-MS-7885': 
                   '/home/adithya/Stanford/cs273b/273b-project/data/deepsea_train/',
-                  'group16': '/home/data/deepsea_train/'}
+                  'group16': '/home/data/deepsea_train/',
+		  'galangal.stanford.edu': '/home/apoursh/projects/apoursh/DeepSEA'}
     return data_paths[hostname]
+
+def load_test():
+    DATA_PATH = get_data_path()
+    testmat = scipy.io.loadmat('%s/test.mat' % DATA_PATH)
+    
+    X_test = np.transpose(testmat['testxdata'],axes=(0,2,1))
+    y_test = testmat['testdata']
+    return X_test, y_test
+
 
 def load(dataset):
     datasets = {'main': ['X_train', 'y_train'],
