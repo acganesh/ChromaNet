@@ -43,7 +43,7 @@ X_train = np.array(trainmat['trainxdata'])
 y_train = np.array(trainmat['traindata'])
 y_train = y_train[:, index]       
 
-ones = np.mean(y_train,0)
+ones = np.mean(y_train,0)*1.1
 #ones[ones<.01] = 0.01
 zeros = 1 - ones
 os = np.array([ones for shit in range(batch_sz)])
