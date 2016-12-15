@@ -1,8 +1,7 @@
-"""
-from keras.layers import SimpleRNN
+from keras.layers import Recurrent
 import numpy as np
 import keras.backend as K
-
+"""
 class ClockworkRNN(SimpleRNN):
     '''
         Clockwork Recurrent Unit - Koutnik et al. 2014
