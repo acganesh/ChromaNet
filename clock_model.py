@@ -9,7 +9,7 @@ class BidirectionalClockworkRNN:
         #fiddle around with period_spec
         model.add(ClockworkRNN(320, period_spec=[1, 2, 4, 8, 16,
                                                                32,64,128,256,512],
-                                input_dim=(4,1),input_length=1000))
+                                input_shape=(1000,4))
         #optional
         model.add(Dropout(0.5))
         model.add(Dense(output_dim=919,activation='sigmoid'))
