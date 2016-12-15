@@ -7,7 +7,7 @@ class BidirectionalClockworkRNN:
     def build_model(self):
         model=Sequential()
         #fiddle around with period_spec
-        model.add(ClockworkRNN(320, period_spec=[1, 2, 4, 8, 16,
+        model.add(ClockworkRNN(output_dim=320, period_spec=[1, 2, 4, 8, 16,
                                                                32,64,128,256,512],
                                 input_shape=(1000,4))
         #optional
